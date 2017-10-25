@@ -22,4 +22,9 @@ public class PersonalData {
         this.firstName = firstName;
         this.lastName = lastName;
     }
+
+    @Override
+    public String toString() {
+        return "\nПерсональные данные: id="+id+", имя="+firstName+", фамилия="+lastName;
+    }
 }

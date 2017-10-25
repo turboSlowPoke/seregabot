@@ -45,4 +45,25 @@ public class User {
     public long getChatId() {
         return chatId;
     }
+
+    public void setLevel(long level) {
+        this.level = level;
+    }
+
+    public void setLeftKey(long leftKey) {
+        this.leftKey = leftKey;
+    }
+
+    public void setRightKey(long rightKey) {
+        this.rightKey = rightKey;
+    }
+
+    public PersonalData getPersonalData() {
+        return personalData;
+    }
+
+    @Override
+    public String toString() {
+        return "\nПользователь: userID="+id+", chatId="+chatId +", level="+level +", RK="+rightKey +", LK="+leftKey;
+    }
 }

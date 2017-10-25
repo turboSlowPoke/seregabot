@@ -1,15 +1,18 @@
 package telegramservices;
 
 import dbservices.DbService;
+import dbservices.ActionType;
 import dbservices.entyties.Contatct;
 import dbservices.entyties.PersonalData;
 import dbservices.entyties.User;
+import main.Config;
 import org.apache.log4j.Logger;
 import org.telegram.telegrambots.api.methods.BotApiMethod;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
+import telegramservices.enums.KeybordCommand;
 import telegramservices.enums.ResponseText;
 
 import java.util.regex.Matcher;
@@ -20,8 +23,8 @@ public class WebhookSevice extends TelegramWebhookBot {
     private Menucreator menucreator;
 
 
-    public WebhookSevice(Menucreator menucreator, DbService dbService) {
-        this.menucreator = menucreator;
+    public WebhookSevice() {
+        this.menucreator = new Menucreator();
     }
 
 
@@ -36,10 +39,50 @@ public class WebhookSevice extends TelegramWebhookBot {
             Message incomingMessage = update.getMessage();
             User user = DbService.getInstance().getUser(incomingMessage.getChatId());
             if (user!=null){
-
+                response=mainContext(user,incomingMessage);
             }else {
 
             }
+        }
+        return response;
+    }
+
+    private BotApiMethod mainContext(User user, Message incomingMessage) {
+        SendMessage response = new SendMessage(user.getChatId(),"Неизвестная команда!");
+        KeybordCommand command = KeybordCommand.getTYPE(incomingMessage.getText());
+        switch (command){
+            case START:
+                response.setText("Главное меню");
+                response.setReplyMarkup(menucreator.getMainMenu());
+                break;
+            case BASE:
+                response.setText("Здесь будет список валют");
+                break;
+            case CALENDAR:
+                response.setText("Здесь будет календарь событий");
+                break;
+            case NEWS:
+                response.setText("Здесь будут новости");
+                break;
+            case CHAT:
+                response.setText("Здесь будет ссылка на общий чат");
+                break;
+            case INFO:
+                response.setText("Здесь будет меню с информацией");
+                break;
+            case SUBSCRIPTION:
+                response.setText("Здесь будет меню с оформлением подписки");
+                break;
+            case PARTNERS_PROG:
+                response.setText("Здесь будет меню с партнёрской программой");
+                break;
+            case MY_ACCOUNT:
+                response.setText("Здесь будет меню настройки аккаунта");
+                break;
+            case FAIL:
+                response.setText("Неизвестная команда!");
+            default:
+                response.setText("Ошибка в maincontext()");
         }
         return response;
     }
@@ -49,13 +92,13 @@ public class WebhookSevice extends TelegramWebhookBot {
         User user = createNewUser(incomingMessage);
         //не приглашенный пользователь start без параметров
         if (incomingMessage.getText().equals("/start")){
-            //DbService.getInstance().addParentUser(user);
+            DbService.getInstance().changeUser(user, ActionType.SAVEROOTUSER);
             response.setText(ResponseText.WELCOME.getText());
             response.setReplyMarkup(menucreator.getMainMenu());
         }
         //приглашенный start с параметром id пригласителя
         else if (incomingMessage.getText().startsWith("/start ")){
-            //DbService.getInstance().addChildrenUser(user);
+            DbService.getInstance().changeUser(user,ActionType.SAVECHILDRENUSER);
             response.setText(ResponseText.WELCOME.getText());
             response.setReplyMarkup(menucreator.getMainMenu());
         }
@@ -71,6 +114,10 @@ public class WebhookSevice extends TelegramWebhookBot {
         Contatct contatct = new Contatct(telegramUserName);
         PersonalData personalData = new PersonalData(firstName,lastName);
         User user = new User(chatId,personalData,contatct);
+        log.info("Создан новый пользователь:"
+                +user
+                +user.getContatct()
+                +user.getPersonalData());
         return user;
     }
 
@@ -93,16 +140,16 @@ public class WebhookSevice extends TelegramWebhookBot {
 
     @Override
     public String getBotUsername() {
-        return null;
+        return Config.botname;
     }
 
     @Override
     public String getBotToken() {
-        return null;
+        return Config.token;
     }
 
     @Override
     public String getBotPath() {
-        return null;
+        return Config.botPath;
     }
 }

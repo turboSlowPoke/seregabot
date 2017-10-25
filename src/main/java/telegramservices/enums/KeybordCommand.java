@@ -2,6 +2,7 @@ package telegramservices.enums;
 
 public enum KeybordCommand {
     //mainmenu
+    START("/start"),
     BASE("База знаний"),
     CALENDAR("Календарь событий"),
     INFO("Информация"),

@@ -19,4 +19,9 @@ public class Contatct {
     public Contatct(String telegramUserName) {
         this.telegramUserName=telegramUserName;
     }
+
+    @Override
+    public String toString() {
+        return "\nКонтакт: id="+id+", telegram="+telegramUserName;
+    }
 }

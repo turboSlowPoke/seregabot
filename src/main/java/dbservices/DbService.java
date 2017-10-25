@@ -35,4 +35,35 @@ public class DbService {
             return user;
         }
     }
+
+    public synchronized void changeUser(User user, ActionType persistType) {
+        if (persistType == ActionType.SAVEROOTUSER) {
+            log.info("Добавляем rootUser в базу...");
+            EntityManager em = entityManagerFactory.createEntityManager();
+            EntityTransaction tr = em.getTransaction();
+            TypedQuery<Integer> maxRightKeyQuery = em.createQuery("SELECT MAX(u.rightKey) FROM User u", Integer.class);
+            Integer maxRightKey = maxRightKeyQuery.getSingleResult();
+            if (maxRightKey != null) {
+                user.setLevel(0);
+                user.setLeftKey(maxRightKey + 1);
+                user.setRightKey(maxRightKey + 2);
+            } else {
+                user.setLevel(0);
+                user.setLeftKey(1);
+                user.setRightKey(2);
+            }
+            tr.begin();
+            try {
+                em.persist(user);
+                tr.commit();
+                log.info("В базу добавлен rootUser" + user);
+            } catch (Exception e) {
+                if (tr.isActive()) tr.rollback();
+                log.error("Ошибка при сохранении rootUser" + user);
+            } finally {
+                em.clear();
+                em.close();
+            }
+        }
+    }
 }
