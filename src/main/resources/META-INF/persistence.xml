@@ -9,6 +9,11 @@
         <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
         <class>dbservices.entyties.User</class>
         <class>dbservices.entyties.Contatct</class>
+        <class>dbservices.entyties.PersonalData</class>
+        <class>dbservices.entyties.KryptoCurrency</class>
+        <class>dbservices.entyties.LocalDateTimeConvereter</class>
+        <class>dbservices.entyties.News</class>
+        <class>dbservices.entyties.Service</class>
         <properties>
             <property name="javax.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
             <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/seregabot?useSSL=false&amp;useUnicode=true&amp;serverTimezone=UTC"/>

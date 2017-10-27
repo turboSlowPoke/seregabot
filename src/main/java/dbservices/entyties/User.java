@@ -24,6 +24,8 @@ public class User {
     private PersonalData personalData;
     @Column(name = "type")
     private String type = "client";
+    @OneToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    private Service service;
 
     public User() {
     }
@@ -32,6 +34,7 @@ public class User {
         this.chatId=chatId;
         this.personalData = personalData;
         this.contatct=contatct;
+        this.service=new Service();
     }
 
     public Contatct getContatct() {
@@ -60,6 +63,10 @@ public class User {
 
     public PersonalData getPersonalData() {
         return personalData;
+    }
+
+    public Service getService() {
+        return service;
     }
 
     @Override

@@ -11,6 +11,23 @@ public enum KeybordCommand {
     NEWS("Новости"),
     PARTNERS_PROG("Партнёрская программа"),
     MY_ACCOUNT("Мой аккаунт"),
+    //info menu
+    ABOUT("О проекте"),
+    FAQ("FAQ"),
+    HELP("Помощь"),
+    //subscription menu
+    THREE_MONTH("3 месяца - 100р"),
+    SIX_MONTTH("6 месяцев - 180р"),
+    TWELVE_MONTH("12 месяцев - 320р"),
+    BACK("<= В главное меню"),
+    URL_PAYMENTS("https://advcash.com/"),
+    URL_OPTION_THREEMONTH("threemonth"),
+    URL_OPTION_SIXMONTH("sixmonth"),
+    URL_OPTION_TWELVEMONTH("twelvemonth"),
+    //partners menu
+    INVITE_PARTNERS("Пригласить партнера"),
+    MY_PARNERS("Мои партнёры"),
+    BONUSES("Мои бонусы"),
 
     FAIL("Неизвестная команда")
     ;

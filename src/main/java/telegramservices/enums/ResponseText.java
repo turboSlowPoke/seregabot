@@ -1,9 +1,10 @@
 package telegramservices.enums;
 
 public enum ResponseText {
-    WELCOME("Добро пожаловать! \n Выберите пункт меню!"),
-    SEND_START("Нажмите старт"),
-    FAIL("Я не знаю что на это ответить")
+    WELCOME("Добро пожаловать!"),
+    SEND_START("Отправьте /start"),
+    FAIL("Я не знаю что на это ответить"),
+    MAINMENU("Главное меню")
     ;
 
     ResponseText(String text) {

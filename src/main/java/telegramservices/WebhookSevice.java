@@ -2,19 +2,22 @@ package telegramservices;
 
 import dbservices.DbService;
 import dbservices.ActionType;
-import dbservices.entyties.Contatct;
-import dbservices.entyties.PersonalData;
-import dbservices.entyties.User;
+import dbservices.entyties.*;
 import main.Config;
 import org.apache.log4j.Logger;
 import org.telegram.telegrambots.api.methods.BotApiMethod;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
+import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.api.objects.CallbackQuery;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
+import org.telegram.telegrambots.exceptions.TelegramApiException;
 import telegramservices.enums.KeybordCommand;
 import telegramservices.enums.ResponseText;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,7 +35,7 @@ public class WebhookSevice extends TelegramWebhookBot {
     public BotApiMethod onWebhookUpdateReceived(Update update) {
         BotApiMethod response=null;
         if (update.hasCallbackQuery()){
-
+            response = callBackContext(update.getCallbackQuery());
         }else if (update.hasMessage()
                 &&!update.getMessage().isGroupMessage()
                 &&update.getMessage().hasText()) {
@@ -41,9 +44,33 @@ public class WebhookSevice extends TelegramWebhookBot {
             if (user!=null){
                 response=mainContext(user,incomingMessage);
             }else {
-
+                response = startContext(incomingMessage);
             }
         }
+        return response;
+    }
+
+    private BotApiMethod callBackContext(CallbackQuery callbackQuery) {
+        EditMessageText response = new EditMessageText()
+                .setMessageId(callbackQuery.getMessage().getMessageId())
+                .setChatId(callbackQuery.getMessage().getChatId());
+        String dataFromQuery = callbackQuery.getData();
+        if (dataFromQuery.startsWith("currency=")){
+            Long idCurrency = Long.parseLong(dataFromQuery.substring(9));
+            KryptoCurrency currency = DbService.getInstance().getCurrency(idCurrency);
+            if (currency!=null){
+                response.setText(currency.getShortName()+" "+currency.getName()+"\n"+currency.getDescription());
+                response.setReplyMarkup(menucreator.createBackToCurrencyListButton());
+            }
+        }else if (dataFromQuery.equals("backToCurrencyList")){
+            List<KryptoCurrency> currencyList = DbService.getInstance().getCurrencyList();
+            response.setText("Список валют:");
+            response.setReplyMarkup(menucreator.createCarrencyListMenu(currencyList));
+        }
+        else {
+            response=null;
+        }
+
         return response;
     }
 
@@ -52,11 +79,17 @@ public class WebhookSevice extends TelegramWebhookBot {
         KeybordCommand command = KeybordCommand.getTYPE(incomingMessage.getText());
         switch (command){
             case START:
-                response.setText("Главное меню");
-                response.setReplyMarkup(menucreator.getMainMenu());
+                response.setText(ResponseText.MAINMENU.getText());
+                response.setReplyMarkup(menucreator.createMainMenu());
                 break;
             case BASE:
-                response.setText("Здесь будет список валют");
+                List<KryptoCurrency> currencyList = DbService.getInstance().getCurrencyList();
+                if (currencyList!=null&&currencyList.size()>0){
+                    response.setReplyMarkup(menucreator.createCarrencyListMenu(currencyList));
+                    response.setText("Список валют:");
+                } else {
+                    response.setText("Список валют пуст");
+                }
                 break;
             case CALENDAR:
                 response.setText("Здесь будет календарь событий");
@@ -68,14 +101,47 @@ public class WebhookSevice extends TelegramWebhookBot {
                 response.setText("Здесь будет ссылка на общий чат");
                 break;
             case INFO:
-                response.setText("Здесь будет меню с информацией");
+                response.setText("Информация");
+                response.setReplyMarkup(menucreator.createInfoMenu());
+                break;
+            case ABOUT:
+                response.setText("Информация о проекте, ссылка на сайт..");
+                break;
+            case FAQ:
+                response.setText("Список чатсых вопросов");
+                break;
+            case HELP:
+                response.setText("Ссылка на аккаунт поддержки...");
+                 break;
+            case BACK:
+                response.setText(ResponseText.MAINMENU.getText());
+                response.setReplyMarkup(menucreator.createMainMenu());
                 break;
             case SUBSCRIPTION:
-                response.setText("Здесь будет меню с оформлением подписки");
+                LocalDate endOfSubscription = user.getService().getEndOfSubscription();
+                if (endOfSubscription!=null&&endOfSubscription.isAfter(LocalDate.now())){
+                    response.setText("Ваша подписка заканчивается "+endOfSubscription +". Вы можете продлить ее, выбрав нужный вариант:");
+                }else if (endOfSubscription!=null&&endOfSubscription.isBefore(LocalDate.now())){
+                    response.setText("Ваша подписка закончилась "+endOfSubscription+". Выберите вариант и оплатите подписку.");
+                }else {
+                    response.setText("У вас еще нет пописки. Выберите вариант и оплатите подписку." +
+                            "\nПосле нажатия на кнопку вы будите переадресованы на сайт платежной системы Advcash( https://advcash.com/ )");
+                }
+                response.setReplyMarkup(menucreator.createSubscriptionMenu());
                 break;
             case PARTNERS_PROG:
-                response.setText("Здесь будет меню с партнёрской программой");
+                response.setText("Партнёрская программа:");
+                response.setReplyMarkup(menucreator.createPartnersMenu());
                 break;
+            case INVITE_PARTNERS:
+                response.setText("Чтобы пригласить парнтёра, скопируйте и отправьте ему ссылку:" +
+                        "\nhttps://t.me/Sl0wP0ke_Bot?start="+user.getChatId());
+                break;
+            case MY_PARNERS:
+                response.setText("Здесь будет список партнеров по уровням");
+                break;
+            case BONUSES:
+                response.setText()
             case MY_ACCOUNT:
                 response.setText("Здесь будет меню настройки аккаунта");
                 break;
@@ -94,13 +160,13 @@ public class WebhookSevice extends TelegramWebhookBot {
         if (incomingMessage.getText().equals("/start")){
             DbService.getInstance().changeUser(user, ActionType.SAVEROOTUSER);
             response.setText(ResponseText.WELCOME.getText());
-            response.setReplyMarkup(menucreator.getMainMenu());
+            response.setReplyMarkup(menucreator.createMainMenu());
         }
         //приглашенный start с параметром id пригласителя
         else if (incomingMessage.getText().startsWith("/start ")){
             DbService.getInstance().changeUser(user,ActionType.SAVECHILDRENUSER);
             response.setText(ResponseText.WELCOME.getText());
-            response.setReplyMarkup(menucreator.getMainMenu());
+            response.setReplyMarkup(menucreator.createMainMenu());
         }
         return response;
 
